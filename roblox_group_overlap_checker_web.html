@@ -87,6 +87,7 @@
   </div>
 
   <script>
+    const proxy = "https://api.allorigins.win/raw?url=";
     const startBtn = document.getElementById('startBtn');
     const exportBtn = document.getElementById('exportBtn');
     const copyBtn = document.getElementById('copyBtn');
@@ -104,7 +105,6 @@
       let cursor = null;
       let fetched = 0;
       const limit = 100;
-      const proxy = "https://api.allorigins.win/raw?url=";
       const base = proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${groupId}/users?limit=${limit}`);
 
 
