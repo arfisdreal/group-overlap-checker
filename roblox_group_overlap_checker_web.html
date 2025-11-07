@@ -104,7 +104,9 @@
       let cursor = null;
       let fetched = 0;
       const limit = 100;
-      const base = `https://groups.roblox.com/v1/groups/${groupId}/users?limit=${limit}`;
+      const proxy = "https://api.allorigins.win/raw?url=";
+      const base = proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${groupId}/users?limit=${limit}`);
+
 
       while (true){
         let url = base + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : '');
@@ -170,8 +172,13 @@
         const onProgB = (n)=>{ progB = n; const p = 60 + Math.round((progB/(totalEst||1))*40); setProgress(p); };
 
         // Start small quick estimate: fetch first page of each to estimate size
-        const quickA = await fetch(`https://groups.roblox.com/v1/groups/${a}/users?limit=1`).then(r=>r.json()).catch(()=>null);
-        const quickB = await fetch(`https://groups.roblox.com/v1/groups/${b}/users?limit=1`).then(r=>r.json()).catch(()=>null);
+const quickA = await fetch(proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${a}/users?limit=1`))
+  .then(r=>r.json())
+  .catch(()=>null);
+
+const quickB = await fetch(proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${b}/users?limit=1`))
+  .then(r=>r.json())
+  .catch(()=>null);
         // Note: API doesn't return total count in this endpoint; estimate from subsequent pages isn't straightforward.
         totalEst = 200; // conservative default to allow progress bar behavior
 
