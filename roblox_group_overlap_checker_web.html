@@ -81,13 +81,12 @@
       </div>
 
       <footer>
-        Note: If the Roblox API blocks cross-origin requests in your browser, run this file from a local web server (e.g. `python -m http.server`) or host it on a static host (GitHub Pages / Replit). Do NOT paste your Roblox cookie into any third-party site.
+        Note: Roblox’s API blocks cross-origin requests directly so this hosted version uses <code>corsproxy.io</code> to relay requests. Requests may be a bit slow. MADE BY PAULUSKERNMAGNE
       </footer>
     </div>
   </div>
 
   <script>
-    const proxy = "https://api.allorigins.win/raw?url=";
     const startBtn = document.getElementById('startBtn');
     const exportBtn = document.getElementById('exportBtn');
     const copyBtn = document.getElementById('copyBtn');
@@ -98,6 +97,8 @@
     const resultsTable = document.getElementById('resultsTable');
     const resultsBody = document.getElementById('resultsBody');
 
+    const proxy = "https://corsproxy.io/?";
+
     function setProgress(p){ bar.style.width = Math.max(0, Math.min(100,p)) + '%'; }
 
     async function fetchGroupMembers(groupId, onProgress){
@@ -105,8 +106,7 @@
       let cursor = null;
       let fetched = 0;
       const limit = 100;
-      const base = proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${groupId}/users?limit=${limit}`);
-
+      const base = `${proxy}https://groups.roblox.com/v1/groups/${groupId}/users?limit=${limit}`;
 
       while (true){
         let url = base + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : '');
@@ -124,7 +124,7 @@
         if (!Array.isArray(data.data)) break;
 
         for (const entry of data.data){
-          const u = entry.user || entry; // safety
+          const u = entry.user || entry;
           members.push({id: u.userId, username: u.username || u.displayName || ('id:'+u.userId)});
         }
 
@@ -133,7 +133,6 @@
 
         cursor = data.nextPageCursor || null;
         if (!cursor) break;
-        // small delay to be polite to the API and reduce chance of rate limits
         await new Promise(r=>setTimeout(r, 300));
       }
       return members;
@@ -167,20 +166,9 @@
       countA.textContent = '—'; countB.textContent='—'; countBoth.textContent='—';
 
       try{
-        let progA = 0; let progB = 0; let totalEst = 1;
+        let progA = 0; let progB = 0; let totalEst = 200;
         const onProgA = (n)=>{ progA = n; const p = Math.round((progA/(totalEst||1))*60); setProgress(p); };
         const onProgB = (n)=>{ progB = n; const p = 60 + Math.round((progB/(totalEst||1))*40); setProgress(p); };
-
-        // Start small quick estimate: fetch first page of each to estimate size
-const quickA = await fetch(proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${a}/users?limit=1`))
-  .then(r=>r.json())
-  .catch(()=>null);
-
-const quickB = await fetch(proxy + encodeURIComponent(`https://groups.roblox.com/v1/groups/${b}/users?limit=1`))
-  .then(r=>r.json())
-  .catch(()=>null);
-        // Note: API doesn't return total count in this endpoint; estimate from subsequent pages isn't straightforward.
-        totalEst = 200; // conservative default to allow progress bar behavior
 
         const [membersA, membersB] = await Promise.all([
           fetchGroupMembers(a, onProgA),
@@ -204,7 +192,6 @@ const quickB = await fetch(proxy + encodeURIComponent(`https://groups.roblox.com
         exportBtn.disabled = overlap.length===0;
         copyBtn.disabled = overlap.length===0;
 
-        // make export available
         exportBtn.onclick = ()=>{
           const csv = toCSV(overlap);
           const blob = new Blob([csv], {type:'text/csv'});
